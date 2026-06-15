@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>LSPD MDT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="tablet" class="hidden">
+  <div class="frame">
+    <button class="power" id="closeBtn" title="Close (ESC)"><i class="fa-solid fa-power-off"></i></button>
+
+    <div class="screen">
+      <!-- Status bar -->
+      <header class="statusbar">
+        <div class="brand">
+          <i class="fa-solid fa-shield-halved"></i>
+          <div>
+            <div class="brand-title">L<span class="dot">.</span>S<span class="dot">.</span>P<span class="dot">.</span>D<span class="dot">.</span></div>
+            <div class="brand-sub">MOBILE DATA TERMINAL</div>
+          </div>
+        </div>
+        <div class="clock"><span id="clock">00:00:00</span><span class="date" id="date">—</span></div>
+        <div class="officer-info">
+          <div class="badge-num" id="badgeNum">#0000</div>
+          <div class="officer-name" id="officerName">— LOADING —</div>
+          <div class="officer-rank" id="officerRank">—</div>
+        </div>
+        <div class="indicators">
+          <i class="fa-solid fa-signal" title="Signal"></i>
+          <i class="fa-solid fa-wifi" title="Network"></i>
+          <span class="battery"><i class="fa-solid fa-battery-three-quarters"></i> 87%</span>
+        </div>
+      </header>
+
+      <!-- Body -->
+      <div class="body">
+        <nav class="sidebar">
+          <button class="nav active" data-tab="home"><i class="fa-solid fa-grip"></i><span>Home</span></button>
+          <button class="nav" data-tab="citizens"><i class="fa-solid fa-id-card"></i><span>Citizens</span></button>
+          <button class="nav" data-tab="vehicles"><i class="fa-solid fa-car"></i><span>Vehicles</span></button>
+          <button class="nav" data-tab="bolos"><i class="fa-solid fa-bullhorn"></i><span>BOLOs</span></button>
+          <button class="nav admin-only" data-tab="roles" hidden><i class="fa-solid fa-user-shield"></i><span>Roles</span></button>
+
+          <div class="sidebar-spacer"></div>
+
+          <button class="nav" data-action="duty"><i class="fa-solid fa-toggle-on"></i><span>Duty</span></button>
+        </nav>
+
+        <main class="content" id="content"></main>
+      </div>
+    </div>
+
+    <div class="brand-strip">EVIDENCE-GRADE TERMINAL · ENCRYPTED CHANNEL</div>
+  </div>
+</div>
+
+<!-- Modal layer -->
+<div id="modal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <span id="modalTitle">—</span>
+      <button id="modalClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+      <button class="btn btn-primary" id="modalOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

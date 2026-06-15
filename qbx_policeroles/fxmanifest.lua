@@ -46,7 +46,12 @@ dependencies {
 
 files {
     'locales/en.json',
+    'html/index.html',
+    'html/style.css',
+    'html/script.js',
 }
+
+ui_page 'html/index.html'
 
 provides {
     'qbx_policeroles',
