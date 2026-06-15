@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self' 'unsafe-inline' 'unsafe-eval' nui://* https://nui-img/*; img-src 'self' data: https://nui-img/* nui://*;">
+    <title>Dusa Mechanic</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="root" class="hidden">
+        <div class="shell">
+
+            <!-- Header -->
+            <header class="topbar">
+                <div class="logo-wrap">
+                    <div class="logo-mark">DM</div>
+                    <div>
+                        <div class="logo-title" id="shopName">LS Customs</div>
+                        <div class="logo-sub">DUSA MECHANIC OS // v1.0</div>
+                    </div>
+                </div>
+                <div class="veh-card">
+                    <div class="veh-line"><span>MODEL</span><b id="vehModel">--</b></div>
+                    <div class="veh-line"><span>PLATE</span><b id="vehPlate" class="plate">--</b></div>
+                    <div class="veh-line"><span>BODY</span><b id="vehBody">--%</b></div>
+                    <div class="veh-line"><span>ENGINE</span><b id="vehEngine">--%</b></div>
+                </div>
+                <button class="close-btn" id="closeBtn" title="Close (ESC)">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round">
+                        <path d="M6 6l12 12M18 6L6 18"/>
+                    </svg>
+                </button>
+            </header>
+
+            <div class="body">
+                <!-- Sidebar tabs -->
+                <aside class="sidebar">
+                    <button class="tab active" data-tab="repair">
+                        <span class="num">01</span><span>REPAIR</span>
+                    </button>
+                    <button class="tab" data-tab="performance">
+                        <span class="num">02</span><span>PERFORMANCE</span>
+                    </button>
+                    <button class="tab" data-tab="visual">
+                        <span class="num">03</span><span>VISUAL</span>
+                    </button>
+                    <button class="tab" data-tab="nos">
+                        <span class="num">04</span><span>NOS / NITRO</span>
+                    </button>
+                    <button class="tab" data-tab="diag">
+                        <span class="num">05</span><span>DIAGNOSTIC</span>
+                    </button>
+
+                    <div class="sidebar-footer">
+                        <div class="dot pulse"></div>
+                        <span>SYSTEM ONLINE</span>
+                    </div>
+                </aside>
+
+                <!-- Content panes -->
+                <main class="content">
+
+                    <!-- REPAIR -->
+                    <section class="pane active" data-pane="repair">
+                        <div class="pane-header">
+                            <h2>Repair Bay</h2>
+                            <p>Restore body, engine, tires and finish with a wash</p>
+                        </div>
+                        <div class="grid">
+                            <div class="card" data-action="repair" data-what="tire" data-price-key="tire">
+                                <div class="card-ico">🛞</div>
+                                <div class="card-title">Repair Tires</div>
+                                <div class="card-sub">Per damaged tire</div>
+                                <div class="card-price">$<span class="p">--</span></div>
+                                <button class="btn">EXECUTE</button>
+                            </div>
+                            <div class="card" data-action="repair" data-what="window" data-price-key="window">
+                                <div class="card-ico">🪟</div>
+                                <div class="card-title">Repair Windows</div>
+                                <div class="card-sub">All windows</div>
+                                <div class="card-price">$<span class="p">--</span></div>
+                                <button class="btn">EXECUTE</button>
+                            </div>
+                            <div class="card" data-action="repair" data-what="body" data-price-key="body">
+                                <div class="card-ico">🔧</div>
+                                <div class="card-title">Repair Body</div>
+                                <div class="card-sub">Restore body</div>
+                                <div class="card-price">$<span class="p">--</span></div>
+                                <button class="btn">EXECUTE</button>
+                            </div>
+                            <div class="card" data-action="repair" data-what="engine" data-price-key="engine">
+                                <div class="card-ico">⚙️</div>
+                                <div class="card-title">Repair Engine</div>
+                                <div class="card-sub">Restore engine block</div>
+                                <div class="card-price">$<span class="p">--</span></div>
+                                <button class="btn">EXECUTE</button>
+                            </div>
+                            <div class="card primary" data-action="repair" data-what="full" data-price-key="fullRepair">
+                                <div class="card-ico">⚡</div>
+                                <div class="card-title">FULL RESTORE</div>
+                                <div class="card-sub">Engine + body + windows + tires</div>
+                                <div class="card-price">$<span class="p">--</span></div>
+                                <button class="btn primary">EXECUTE</button>
+                            </div>
+                            <div class="card" data-action="repair" data-what="clean" data-price-key="fullClean">
+                                <div class="card-ico">🧽</div>
+                                <div class="card-title">Clean Vehicle</div>
+                                <div class="card-sub">Wash & detail</div>
+                                <div class="card-price">$<span class="p">--</span></div>
+                                <button class="btn">EXECUTE</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- PERFORMANCE -->
+                    <section class="pane" data-pane="performance">
+                        <div class="pane-header">
+                            <h2>Performance Tuning</h2>
+                            <p>Upgrade engine, transmission, brakes and suspension</p>
+                        </div>
+                        <div class="tune-list" id="tuneList"></div>
+                    </section>
+
+                    <!-- VISUAL -->
+                    <section class="pane" data-pane="visual">
+                        <div class="pane-header">
+                            <h2>Visual Customization</h2>
+                            <p>Paint, wheels, lights, neons & plates</p>
+                        </div>
+
+                        <div class="visual-grid">
+                            <div class="vcard">
+                                <div class="vcard-h">PRIMARY COLOR</div>
+                                <input type="color" value="#ff2d55" id="primaryColor">
+                                <button class="btn" data-action="cosm" data-what="primaryColor" data-color-from="primaryColor" data-price-key="primaryColor">APPLY · $<span class="p">--</span></button>
+                            </div>
+                            <div class="vcard">
+                                <div class="vcard-h">SECONDARY COLOR</div>
+                                <input type="color" value="#0a84ff" id="secondaryColor">
+                                <button class="btn" data-action="cosm" data-what="secondaryColor" data-color-from="secondaryColor" data-price-key="secondaryColor">APPLY · $<span class="p">--</span></button>
+                            </div>
+                            <div class="vcard">
+                                <div class="vcard-h">NEON COLOR</div>
+                                <input type="color" value="#ff00ff" id="neonColor">
+                                <button class="btn" data-action="cosm" data-what="neons" data-color-from="neonColor" data-price-key="neons">APPLY · $<span class="p">--</span></button>
+                            </div>
+                            <div class="vcard">
+                                <div class="vcard-h">TIRE SMOKE</div>
+                                <input type="color" value="#ffaa00" id="smokeColor">
+                                <button class="btn" data-action="cosm" data-what="smoke" data-color-from="smokeColor" data-price-key="smoke">APPLY · $<span class="p">--</span></button>
+                            </div>
+                            <div class="vcard">
+                                <div class="vcard-h">XENON HEADLIGHTS</div>
+                                <select id="xenonIndex">
+                                    <option value="0">White</option>
+                                    <option value="1">Blue</option>
+                                    <option value="2">Electric Blue</option>
+                                    <option value="3">Mint Green</option>
+                                    <option value="4">Lime Green</option>
+                                    <option value="5">Yellow</option>
+                                    <option value="6">Golden Shower</option>
+                                    <option value="7">Orange</option>
+                                    <option value="8">Red</option>
+                                    <option value="9">Pony Pink</option>
+                                    <option value="10">Hot Pink</option>
+                                    <option value="11">Purple</option>
+                                    <option value="12">Blacklight</option>
+                                </select>
+                                <button class="btn" data-action="cosm" data-what="xenons" data-value-from="xenonIndex" data-price-key="xenons">APPLY · $<span class="p">--</span></button>
+                            </div>
+                            <div class="vcard">
+                                <div class="vcard-h">PLATE STYLE</div>
+                                <select id="plateIndex">
+                                    <option value="0">Blue/White</option>
+                                    <option value="1">Yellow/Black</option>
+                                    <option value="2">Yellow/Blue</option>
+                                    <option value="3">Blue/White 2</option>
+                                    <option value="4">Blue/White 3</option>
+                                    <option value="5">Yankton</option>
+                                </select>
+                                <button class="btn" data-action="cosm" data-what="plateIndex" data-value-from="plateIndex" data-price-key="plateIndex">APPLY · $<span class="p">--</span></button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- NOS -->
+                    <section class="pane" data-pane="nos">
+                        <div class="pane-header">
+                            <h2>Nitrous Oxide System</h2>
+                            <p>Inject pure speed</p>
+                        </div>
+                        <div class="nos-wrap">
+                            <div class="nos-bottle">
+                                <div class="bottle">
+                                    <div class="liquid"></div>
+                                </div>
+                                <div class="bottle-label">NOS BOTTLE</div>
+                            </div>
+                            <div class="nos-actions">
+                                <div class="card" data-action="nosInstall" data-price-key="nosInstall">
+                                    <div class="card-title">INSTALL NOS KIT</div>
+                                    <div class="card-sub">One-time install per vehicle</div>
+                                    <div class="card-price">$<span class="p">--</span></div>
+                                    <button class="btn primary">INSTALL</button>
+                                </div>
+                                <div class="card" data-action="nosRefill" data-price-key="nosRefill">
+                                    <div class="card-title">REFILL BOTTLE</div>
+                                    <div class="card-sub">Top up to 100%</div>
+                                    <div class="card-price">$<span class="p">--</span></div>
+                                    <button class="btn">REFILL</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- DIAG -->
+                    <section class="pane" data-pane="diag">
+                        <div class="pane-header">
+                            <h2>Diagnostic Scanner</h2>
+                            <p>Read sensors & service history</p>
+                        </div>
+                        <div class="diag-wrap">
+                            <button class="big-btn" data-action="scan" data-price-key="scanFee">RUN FULL SCAN · $<span class="p">--</span></button>
+                            <div class="diag-info">
+                                Plug in the OBD-II scanner. Reads engine wear, brake wear, NOS state and last service.
+                            </div>
+                        </div>
+                    </section>
+
+                </main>
+            </div>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <span class="brand">DUSA MECHANIC · QBX + OX</span>
+                <span class="hint">ESC to close</span>
+            </footer>
+        </div>
+    </div>
+
+    <!-- NOS HUD (in-game floating bar) -->
+    <div id="nosHud" class="nos-hud hidden">
+        <div class="nos-label">NOS</div>
+        <div class="nos-bar"><div class="nos-fill" id="nosFill"></div></div>
+        <div class="nos-pct" id="nosPct">0%</div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
