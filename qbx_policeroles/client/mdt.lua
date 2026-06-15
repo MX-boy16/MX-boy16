@@ -24,6 +24,15 @@ local function closeTablet()
 end
 
 RegisterNetEvent('qbx_policeroles:openMDT', openTablet)
+RegisterNetEvent('qbx_policeroles:forceCloseMDT', closeTablet)
+
+-- Emergency rescue: clears NUI focus even if NUI is unresponsive.
+RegisterCommand('mdtclose', function()
+    isOpen = false
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = 'close' })
+end, false)
+TriggerEvent('chat:addSuggestion', '/mdtclose', 'Force-close the MDT tablet if it freezes')
 
 -- ESC handling is done client-side in JS via NUI callback below.
 

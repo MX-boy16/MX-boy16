@@ -224,7 +224,11 @@ async function openDossier(cid) {
 async function toggleLicense(d, cls, isActive) {
     if (!state.self.canIssueLic) return toast('Not authorized to issue licenses.', 'error');
     const action = isActive ? 'revoke' : 'issue';
-    if (!confirm(`${action.toUpperCase()} ${CLASS_LABELS[cls].label} ${isActive?'from':'to'} ${d.name}?`)) return;
+    const ok = await confirmModal(
+        `${action.toUpperCase()} LICENSE`,
+        `${action.toUpperCase()} <b style="color:var(--gold)">${CLASS_LABELS[cls].label}</b> ${isActive?'from':'to'} <b>${d.name}</b>?`
+    );
+    if (!ok) return;
     const res = await api(action+'License', { cid: d.citizenid, class: cls });
     if (res && res.ok) { toast('License updated.', 'success'); openDossier(d.citizenid); }
     else toast('Failed: ' + (res && res.err || 'unknown'), 'error');
@@ -367,7 +371,8 @@ async function renderRoles() {
     $$('[data-officer]').forEach(c => c.addEventListener('click', () => openOfficerActions(+c.dataset.officer)));
     $$('[data-del]').forEach(b => b.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (!confirm(`Disband role "${b.dataset.del}" and remove from all officers?`)) return;
+        const ok = await confirmModal('DISBAND ROLE', `Disband role <b style="color:var(--gold)">${b.dataset.del}</b> and remove it from all officers? This cannot be undone.`);
+        if (!ok) return;
         await api('deleteRole', { name: b.dataset.del }); toast('Role deleted.', 'success'); renderRoles();
     }));
     const cb = $('#createRole'); if (cb) cb.addEventListener('click', openCreateRoleModal);
@@ -426,6 +431,16 @@ function showModal(title, html, onConfirm, hideOk) {
 function closeModal() { $('#modal').classList.add('hidden'); }
 $('#modalClose').addEventListener('click', closeModal);
 $('#modalCancel').addEventListener('click', closeModal);
+
+// FiveM CEF has no native confirm(); use the in-page modal instead.
+function confirmModal(title, message) {
+    return new Promise((resolve) => {
+        showModal(title, `<div style="font-size:14px;line-height:1.5;color:var(--text)">${message}</div>`, () => resolve(true));
+        const cancel = () => resolve(false);
+        $('#modalCancel').addEventListener('click', cancel, { once: true });
+        $('#modalClose').addEventListener('click', cancel, { once: true });
+    });
+}
 
 function toast(msg, type='info', dur=3500) {
     const t = document.createElement('div');
