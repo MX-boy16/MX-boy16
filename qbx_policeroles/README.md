@@ -68,8 +68,27 @@ Police-themed ox_lib terminal. Tabs:
 * **Citizen Lookup** – search by name, citizenid, or phone → full dossier (DOB, phone, vehicles, criminal record, active licenses, police roles assigned).
 * **Vehicle Lookup** – plate search → owner CID jumps straight into their dossier.
 * **Weapon Licenses** – issue / revoke Class 1 (pistol), Class 2 (SMG), Class 3 (heavy). See the section below.
-* **Records / Reports** – file charges, warrants, or notes against a citizen with severity, fine, jail time. Resolve open records from the same view.
+* **Records / Reports** – file charges, warrants, or notes against a citizen with severity, fine, jail time. **Auto-enforced** — see below. Resolve open records from the same view.
 * **BOLOs** – broadcast & clear active department alerts.
+
+### Auto-penalty enforcement
+When an officer files a report through the MDT and sets **Fine ($)** > 0 or **Jail (minutes)** > 0:
+
+1. **Fine** is debited from the citizen's **bank** account (`Config.MDT.FineAccount`). If the bank is short and `Config.MDT.AllowCashFallback = true`, the remainder is taken from cash. Any still-unpaid balance is reported back to the officer.
+2. **Jail** sentence is fired to the citizen via the configured client events — by default `police:client:SendToJail`, `qbx_jail:client:jailPlayer`, and `prison:client:setupPrison` (any installed jail script picks it up). Additionally, `metadata.injail` is set in seconds so even servers without a jail script have something to read.
+3. The citizen receives ox_lib notifications: "Fine Issued — $X debited" and "Sentenced — N minute(s) in jail".
+4. The officer's MDT shows a penalty summary: bank/cash split, unpaid balance, and jail confirmation.
+
+If the citizen is **offline** when the report is filed, no penalties apply — the record is logged but flagged "Citizen offline — penalties not applied." (Pending-on-login can be added if you want it.)
+
+Configurable in `Config.MDT`:
+```lua
+AutoApplyPenalties = true   -- master toggle
+AllowCashFallback  = true   -- top up from cash if bank insufficient
+FineAccount        = 'bank' -- which account to debit
+JailClientEvents   = { ... } -- which jail scripts to notify
+SetInJailMetadata  = true   -- write metadata.injail (seconds)
+```
 
 ### Who can issue licenses?
 By default, **any police officer on duty** can issue/revoke licenses through the MDT.

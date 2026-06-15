@@ -180,6 +180,34 @@ Config.MDT = {
     -- Chief always bypasses this (leader grade).
     LicenseIssuers = {},  -- e.g. { 'chief', 'captain', 'lieutenant', 'detective' }
     MaxResults     = 25,
+
+    -- ============================================================
+    --  AUTO-PENALTY ENFORCEMENT
+    --  When an officer files a report with Fine ($) > 0 or Jail (minutes) > 0
+    --  the system will (if the citizen is online):
+    --     1. Debit the fine from their BANK account (with cash fallback)
+    --     2. Send them to jail for the configured duration
+    -- ============================================================
+    AutoApplyPenalties = true,
+
+    -- If bank is short, take the remainder from cash.
+    AllowCashFallback  = true,
+
+    -- Account to debit. 'bank' is standard. Change if your eco uses different keys.
+    FineAccount        = 'bank',
+
+    -- Client event(s) fired on the offender to jail them.
+    -- The default covers the qbox/qb-compatible jail scripts; add or remove
+    -- entries to match whatever jail resource is installed on your server.
+    -- Each entry: { event = '...', arg = 'minutes' | 'seconds' }
+    JailClientEvents = {
+        { event = 'police:client:SendToJail',   arg = 'minutes' }, -- qb-policejob compat
+        { event = 'qbx_jail:client:jailPlayer', arg = 'minutes' }, -- qbx_jail
+        { event = 'prison:client:setupPrison',  arg = 'minutes' }, -- ps-prison
+    },
+
+    -- Also write `injail` to player metadata in seconds (works even without a jail script).
+    SetInJailMetadata  = true,
 }
 
 -- ============================================================

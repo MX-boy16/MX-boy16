@@ -341,7 +341,7 @@ function openCreateRecord(self, d)
     })
     if not input then openCitizenDossier(self, d.citizenid) return end
 
-    local ok, err = cb('qbx_policeroles:mdt:createRecord', false, {
+    local ok, err, penalty = cb('qbx_policeroles:mdt:createRecord', false, {
         citizenid    = d.citizenid,
         type         = input[1],
         severity     = input[2],
@@ -350,7 +350,36 @@ function openCreateRecord(self, d)
         fine         = input[5],
         jail_minutes = input[6],
     })
-    notify(ok and 'Report filed.' or ('Failed: ' .. tostring(err)), ok and 'success' or 'error')
+
+    if not ok then
+        notify('Failed: ' .. tostring(err), 'error')
+    else
+        notify('Report filed.', 'success')
+        if penalty and (penalty.fine_requested > 0 or penalty.jail_minutes > 0) then
+            local lines = {}
+            if not penalty.target_online then
+                lines[#lines + 1] = '⚠  Citizen is offline — penalties not applied.'
+            else
+                if penalty.fine_requested > 0 then
+                    lines[#lines + 1] = ('💰 Collected $%d  (bank $%d • cash $%d)'):format(
+                        penalty.fine_taken, penalty.from_bank, penalty.from_cash)
+                    if penalty.fine_unpaid > 0 then
+                        lines[#lines + 1] = ('❗ Unpaid balance: $%d'):format(penalty.fine_unpaid)
+                    end
+                end
+                if penalty.jailed then
+                    lines[#lines + 1] = ('🔒 Jailed for %d minute(s).'):format(penalty.jail_minutes)
+                end
+            end
+            lib.notify({
+                title       = 'Penalty Applied',
+                description = table.concat(lines, '\n'),
+                type        = (penalty.target_online and penalty.fine_unpaid == 0) and 'success' or 'warning',
+                duration    = 9000,
+                position    = 'top',
+            })
+        end
+    end
     openCitizenDossier(self, d.citizenid)
 end
 

@@ -154,6 +154,101 @@ end
 -- Records (charges / notes / warrants / BOLOs)
 -- ===========================================================
 
+local function applyPenalties(officerSrc, targetCid, fine, jailMinutes)
+    local result = {
+        fine_requested = fine or 0,
+        fine_taken     = 0,
+        fine_unpaid    = 0,
+        from_bank      = 0,
+        from_cash      = 0,
+        jail_minutes   = jailMinutes or 0,
+        jailed         = false,
+        target_online  = false,
+        message        = nil,
+    }
+
+    if not Config.MDT.AutoApplyPenalties then
+        result.message = 'Auto-penalties disabled in config.'
+        return result
+    end
+
+    if (fine or 0) <= 0 and (jailMinutes or 0) <= 0 then
+        return result
+    end
+
+    local targetSrc = Roles.FindOnlineByCid(targetCid)
+    if not targetSrc then
+        result.message     = 'Citizen offline — penalties not applied.'
+        result.fine_unpaid = fine or 0
+        return result
+    end
+    result.target_online = true
+
+    local target = QBX:GetPlayer(targetSrc)
+    if not target then return result end
+
+    -- Fine
+    if (fine or 0) > 0 then
+        local remaining = fine
+        local acct      = Config.MDT.FineAccount or 'bank'
+        local reason    = 'Police fine — filed by officer ' .. tostring(officerSrc)
+
+        local bankBal = target.PlayerData.money[acct] or 0
+        local takeBank = math.min(bankBal, remaining)
+        if takeBank > 0 then
+            target.Functions.RemoveMoney(acct, takeBank, reason)
+            result.from_bank = takeBank
+            remaining = remaining - takeBank
+        end
+
+        if remaining > 0 and Config.MDT.AllowCashFallback then
+            local cashBal = target.PlayerData.money.cash or 0
+            local takeCash = math.min(cashBal, remaining)
+            if takeCash > 0 then
+                target.Functions.RemoveMoney('cash', takeCash, reason)
+                result.from_cash = takeCash
+                remaining = remaining - takeCash
+            end
+        end
+
+        result.fine_taken  = (result.from_bank + result.from_cash)
+        result.fine_unpaid = remaining
+
+        TriggerClientEvent('ox_lib:notify', targetSrc, {
+            title       = 'Fine Issued',
+            description = ('$%d debited (bank: $%d, cash: $%d%s)'):format(
+                result.fine_taken, result.from_bank, result.from_cash,
+                remaining > 0 and (', UNPAID: $' .. remaining) or ''
+            ),
+            type        = 'error',
+            duration    = 8000,
+            icon        = 'sack-dollar',
+        })
+    end
+
+    -- Jail
+    if (jailMinutes or 0) > 0 then
+        for _, ev in ipairs(Config.MDT.JailClientEvents or {}) do
+            local val = (ev.arg == 'seconds') and (jailMinutes * 60) or jailMinutes
+            TriggerClientEvent(ev.event, targetSrc, val)
+        end
+        if Config.MDT.SetInJailMetadata then
+            target.Functions.SetMetaData('injail', jailMinutes * 60)
+        end
+        result.jailed = true
+
+        TriggerClientEvent('ox_lib:notify', targetSrc, {
+            title       = 'Sentenced',
+            description = ('You have been sentenced to %d minute(s) in jail.'):format(jailMinutes),
+            type        = 'error',
+            duration    = 8000,
+            icon        = 'handcuffs',
+        })
+    end
+
+    return result
+end
+
 local function createRecord(officerSrc, data)
     local p = QBX:GetPlayer(officerSrc)
     if not p then return false, 'not_logged_in' end
@@ -167,6 +262,9 @@ local function createRecord(officerSrc, data)
 
     local officerName = ('%s %s'):format(p.PlayerData.charinfo.firstname or '?', p.PlayerData.charinfo.lastname or '')
 
+    local fine         = tonumber(data.fine) or 0
+    local jailMinutes  = tonumber(data.jail_minutes) or 0
+
     local id = MySQL.insert.await([[
         INSERT INTO police_mdt_records
             (citizenid, type, title, body, severity, fine, jail_minutes, officer_cid, officer_name)
@@ -177,13 +275,16 @@ local function createRecord(officerSrc, data)
         data.title or '(untitled)',
         data.body or '',
         data.severity or 'minor',
-        tonumber(data.fine) or 0,
-        tonumber(data.jail_minutes) or 0,
+        fine,
+        jailMinutes,
         p.PlayerData.citizenid,
         officerName,
     })
 
-    return id and id > 0, nil
+    if not (id and id > 0) then return false, 'db_error' end
+
+    local penalty = applyPenalties(officerSrc, cid, fine, jailMinutes)
+    return true, nil, penalty
 end
 
 local function resolveRecord(officerSrc, recordId)
@@ -268,7 +369,8 @@ end)
 
 lib.callback.register('qbx_policeroles:mdt:createRecord', function(source, data)
     if not canUseMDT(source) then return false, 'no_permission' end
-    return createRecord(source, data)
+    local ok, err, penalty = createRecord(source, data)
+    return ok, err, penalty
 end)
 
 lib.callback.register('qbx_policeroles:mdt:resolveRecord', function(source, id)
