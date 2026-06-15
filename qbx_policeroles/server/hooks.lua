@@ -39,6 +39,11 @@ CreateThread(function()
         local p = exports.qbx_core:GetPlayer(src)
         if not p then return false end
 
+        -- On-duty police bypass the license check at shops (configurable).
+        if Config.PoliceBypassLicense and Roles.IsPolice(src) and Roles.IsOnDuty(src) then
+            return
+        end
+
         if Licenses.HasActive(p.PlayerData.citizenid, class) then
             return -- allow
         end

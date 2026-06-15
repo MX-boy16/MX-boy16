@@ -272,3 +272,15 @@ Config.WeaponClasses = {
 
 -- If true, the ammunation hook also blocks ammo without the right license.
 Config.GateAmmo = true
+
+-- If true, on-duty police officers BYPASS the license check at shops
+-- (so they can restock at Ammunation without having to issue themselves a license).
+Config.PoliceBypassLicense = true
+
+-- If true, license issue/revoke also writes to Player.PlayerData.metadata.licences
+-- so any OTHER weapon-shop / vendor on your server that checks the standard
+-- qb/qbx `metadata.licences.weapon` flag will agree with the MDT.
+-- Keys written:
+--   licences.weapon         (true if any class is active)
+--   licences.weapon_class_1 / _2 / _3
+Config.SyncToMetadata = true
