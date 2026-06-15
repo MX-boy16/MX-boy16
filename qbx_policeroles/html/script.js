@@ -37,7 +37,9 @@ window.addEventListener('message', (e) => {
     const d = e.data || {};
     if (d.action === 'open') {
         state.self = d.self || {};
-        showTablet();
+        showTablet(d.initialTab || 'home');
+    } else if (d.action === 'switchTab') {
+        if (d.tab) selectTab(d.tab);
     } else if (d.action === 'close') {
         $('#tablet').classList.add('hidden');
     }
@@ -58,7 +60,7 @@ function tickClock() {
 }
 setInterval(tickClock, 1000); tickClock();
 
-function showTablet() {
+function showTablet(initialTab) {
     $('#tablet').classList.remove('hidden');
     const s = state.self || {};
     $('#officerName').textContent = (s.officerName || '—').toUpperCase();
@@ -66,7 +68,8 @@ function showTablet() {
     $('#badgeNum').textContent = '#' + String(s.badgeId || Math.floor(Math.random()*9000+1000)).padStart(4,'0');
 
     $$('.admin-only').forEach(el => { el.hidden = !s.canManage; });
-    selectTab('home');
+    const targetTab = (initialTab === 'roles' && !s.canManage) ? 'home' : (initialTab || 'home');
+    selectTab(targetTab);
 }
 
 // ---------- sidebar ----------

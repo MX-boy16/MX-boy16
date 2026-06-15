@@ -4,8 +4,12 @@
 local cb = lib.callback.await
 local isOpen = false
 
-local function openTablet()
-    if isOpen then return end
+local function openTablet(initialTab)
+    if isOpen then
+        -- Already open: just switch tab.
+        SendNUIMessage({ action = 'switchTab', tab = initialTab })
+        return
+    end
     local self = cb('qbx_policeroles:mdt:openSelf', false)
     if not self then
         Client.Notify(Client.L('not_police'), 'error')
@@ -13,7 +17,7 @@ local function openTablet()
     end
     isOpen = true
     SetNuiFocus(true, true)
-    SendNUIMessage({ action = 'open', self = self })
+    SendNUIMessage({ action = 'open', self = self, initialTab = initialTab or 'home' })
 end
 
 local function closeTablet()
@@ -23,7 +27,9 @@ local function closeTablet()
     SendNUIMessage({ action = 'close' })
 end
 
-RegisterNetEvent('qbx_policeroles:openMDT', openTablet)
+RegisterNetEvent('qbx_policeroles:openMDT', function(initialTab)
+    openTablet(initialTab)
+end)
 RegisterNetEvent('qbx_policeroles:forceCloseMDT', closeTablet)
 
 -- Emergency rescue: clears NUI focus even if NUI is unresponsive.

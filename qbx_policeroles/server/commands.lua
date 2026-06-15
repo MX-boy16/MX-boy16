@@ -10,15 +10,15 @@ local function getTargetSource(arg)
     return nil
 end
 
--- /policeadmin → opens management UI client-side
+-- /policeadmin → opens the MDT tablet directly on the Roles tab (unified UX).
 lib.addCommand(Config.ManageCommand, {
-    help = 'Open police role management menu',
+    help = 'Open role management (jumps into the MDT)',
 }, function(source)
     if not Roles.CanManage(source) then
         notify(source, 'no_permission', 'error')
         return
     end
-    TriggerClientEvent('qbx_policeroles:openMenu', source)
+    TriggerClientEvent('qbx_policeroles:openMDT', source, 'roles')
 end)
 
 -- /myroles → list own roles

@@ -15,7 +15,6 @@ shared_scripts {
 
 client_scripts {
     'client/main.lua',
-    'client/menu.lua',
     'client/doors.lua',
     'client/stashes.lua',
     'client/mdt.lua',
