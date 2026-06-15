@@ -169,3 +169,78 @@ Config.ManageCommand     = 'policeadmin'
 Config.MyRolesCommand    = 'myroles'
 -- Duty toggle command
 Config.DutyCommand       = 'duty'
+
+-- ============================================================
+--  MDT (Mobile Data Terminal)
+-- ============================================================
+Config.MDT = {
+    Command        = 'mdt',
+    -- Restrict who can ISSUE / REVOKE weapon licenses through the MDT.
+    -- Empty table = any police officer on duty. Otherwise list role codenames.
+    -- Chief always bypasses this (leader grade).
+    LicenseIssuers = {},  -- e.g. { 'chief', 'captain', 'lieutenant', 'detective' }
+    MaxResults     = 25,
+}
+
+-- ============================================================
+--  WEAPON LICENSE CLASSES
+--  Class 1: Pistols
+--  Class 2: SMGs
+--  Class 3: Long arms / heavy (rifles, shotguns, snipers, MGs, launchers)
+-- ============================================================
+Config.LicenseClasses = {
+    [1] = { label = 'Class 1 — Sidearm',           description = 'Pistols & revolvers' },
+    [2] = { label = 'Class 2 — Sub-machine',       description = 'SMGs & machine pistols' },
+    [3] = { label = 'Class 3 — Long Arms / Heavy', description = 'Rifles, shotguns, heavy weapons' },
+}
+
+-- Map ox_inventory item names → required class.
+-- Items not listed here are NOT gated by this script.
+Config.WeaponClasses = {
+    -- Class 1 — pistols
+    ['WEAPON_PISTOL']          = 1, ['WEAPON_PISTOL_MK2']     = 1,
+    ['WEAPON_COMBATPISTOL']    = 1, ['WEAPON_PISTOL50']       = 1,
+    ['WEAPON_SNSPISTOL']       = 1, ['WEAPON_SNSPISTOL_MK2']  = 1,
+    ['WEAPON_HEAVYPISTOL']     = 1, ['WEAPON_VINTAGEPISTOL']  = 1,
+    ['WEAPON_REVOLVER']        = 1, ['WEAPON_REVOLVER_MK2']   = 1,
+    ['WEAPON_DOUBLEACTION']    = 1, ['WEAPON_APPISTOL']       = 1,
+    ['WEAPON_CERAMICPISTOL']   = 1, ['WEAPON_NAVYREVOLVER']   = 1,
+    ['WEAPON_GADGETPISTOL']    = 1, ['WEAPON_STUNGUN']        = 1,
+
+    -- Class 2 — SMGs / machine pistols
+    ['WEAPON_MICROSMG']        = 2, ['WEAPON_SMG']            = 2,
+    ['WEAPON_SMG_MK2']         = 2, ['WEAPON_ASSAULTSMG']     = 2,
+    ['WEAPON_COMBATPDW']       = 2, ['WEAPON_MACHINEPISTOL']  = 2,
+    ['WEAPON_MINISMG']         = 2,
+
+    -- Class 3 — long arms / heavy
+    ['WEAPON_ASSAULTRIFLE']      = 3, ['WEAPON_ASSAULTRIFLE_MK2']  = 3,
+    ['WEAPON_CARBINERIFLE']      = 3, ['WEAPON_CARBINERIFLE_MK2']  = 3,
+    ['WEAPON_ADVANCEDRIFLE']     = 3, ['WEAPON_SPECIALCARBINE']    = 3,
+    ['WEAPON_SPECIALCARBINE_MK2']= 3, ['WEAPON_BULLPUPRIFLE']      = 3,
+    ['WEAPON_BULLPUPRIFLE_MK2']  = 3, ['WEAPON_COMPACTRIFLE']      = 3,
+    ['WEAPON_MILITARYRIFLE']     = 3, ['WEAPON_HEAVYRIFLE']        = 3,
+    ['WEAPON_PUMPSHOTGUN']       = 3, ['WEAPON_PUMPSHOTGUN_MK2']   = 3,
+    ['WEAPON_SAWNOFFSHOTGUN']    = 3, ['WEAPON_ASSAULTSHOTGUN']    = 3,
+    ['WEAPON_BULLPUPSHOTGUN']    = 3, ['WEAPON_HEAVYSHOTGUN']      = 3,
+    ['WEAPON_DBSHOTGUN']         = 3, ['WEAPON_AUTOSHOTGUN']       = 3,
+    ['WEAPON_COMBATSHOTGUN']     = 3, ['WEAPON_SNIPERRIFLE']       = 3,
+    ['WEAPON_HEAVYSNIPER']       = 3, ['WEAPON_HEAVYSNIPER_MK2']   = 3,
+    ['WEAPON_MARKSMANRIFLE']     = 3, ['WEAPON_MARKSMANRIFLE_MK2'] = 3,
+    ['WEAPON_MG']                = 3, ['WEAPON_COMBATMG']          = 3,
+    ['WEAPON_COMBATMG_MK2']      = 3, ['WEAPON_GUSENBERG']         = 3,
+    ['WEAPON_RPG']               = 3, ['WEAPON_GRENADELAUNCHER']   = 3,
+    ['WEAPON_MINIGUN']           = 3, ['WEAPON_RAILGUN']           = 3,
+    ['WEAPON_FIREWORK']          = 3, ['WEAPON_HOMINGLAUNCHER']    = 3,
+    ['WEAPON_COMPACTLAUNCHER']   = 3, ['WEAPON_RAYPISTOL']         = 3,
+    ['WEAPON_RAYCARBINE']        = 3, ['WEAPON_RAYMINIGUN']        = 3,
+
+    -- Ammo (also gated when GateAmmo = true)
+    ['ammo-9']        = 1, ['ammo-45']      = 1,
+    ['ammo-smg']      = 2,
+    ['ammo-rifle']    = 3, ['ammo-rifle2']  = 3,
+    ['ammo-shotgun']  = 3, ['ammo-sniper']  = 3,  ['ammo-mg'] = 3,
+}
+
+-- If true, the ammunation hook also blocks ammo without the right license.
+Config.GateAmmo = true

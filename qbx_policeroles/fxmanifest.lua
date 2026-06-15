@@ -18,6 +18,7 @@ client_scripts {
     'client/menu.lua',
     'client/doors.lua',
     'client/stashes.lua',
+    'client/mdt.lua',
 }
 
 server_scripts {
@@ -27,6 +28,9 @@ server_scripts {
     'server/permissions.lua',
     'server/doors.lua',
     'server/stashes.lua',
+    'server/licenses.lua',
+    'server/mdt.lua',
+    'server/hooks.lua',
     'server/commands.lua',
     'server/events.lua',
 }

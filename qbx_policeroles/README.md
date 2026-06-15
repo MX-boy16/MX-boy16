@@ -52,11 +52,63 @@ Officers with the `can_manage_roles` permission (granted through a custom role) 
 
 | Command            | Who can use        | What it does                                       |
 | ------------------ | ------------------ | -------------------------------------------------- |
-| `/policeadmin`     | Chief / managers   | Opens the ox_lib management menu                   |
+| `/policeadmin`     | Chief / managers   | Opens the police role management menu              |
 | `/policegive [id] [role]` | Chief / managers | Quickly grant a role from chat              |
 | `/policetake [id] [role]` | Chief / managers | Quickly revoke a role from chat             |
+| `/mdt`             | Any police         | Opens the Mobile Data Terminal                     |
 | `/myroles`         | Any officer        | Lists your roles + duty status                     |
 | `/duty`            | Any officer        | Toggles on/off duty                                |
+
+---
+
+## Police MDT (`/mdt`)
+
+Police-themed ox_lib terminal. Tabs:
+
+* **Citizen Lookup** – search by name, citizenid, or phone → full dossier (DOB, phone, vehicles, criminal record, active licenses, police roles assigned).
+* **Vehicle Lookup** – plate search → owner CID jumps straight into their dossier.
+* **Weapon Licenses** – issue / revoke Class 1 (pistol), Class 2 (SMG), Class 3 (heavy). See the section below.
+* **Records / Reports** – file charges, warrants, or notes against a citizen with severity, fine, jail time. Resolve open records from the same view.
+* **BOLOs** – broadcast & clear active department alerts.
+
+### Who can issue licenses?
+By default, **any police officer on duty** can issue/revoke licenses through the MDT.
+To restrict it (e.g. only command staff), edit `Config.MDT.LicenseIssuers`:
+```lua
+Config.MDT.LicenseIssuers = { 'chief', 'captain', 'lieutenant', 'detective' }
+```
+Empty array = anyone on duty. Chief always bypasses.
+
+---
+
+## Weapon License System
+
+Civilians cannot buy gated weapons or ammo from any ox_inventory shop (ammunation, vendors) **unless** they hold the matching active license:
+
+| Class | What it unlocks                                            |
+| :---: | ---------------------------------------------------------- |
+|   1   | All pistols, revolvers, stungun                            |
+|   2   | All SMGs / machine pistols                                 |
+|   3   | Rifles, shotguns, snipers, MGs, launchers, special weapons |
+
+Implementation: a server-side `ox_inventory:registerHook('buyItem')` intercepts every shop purchase. If the item is listed in `Config.WeaponClasses` and the buyer lacks the matching active license, the purchase is **denied** and they get a notification.
+
+Ammo is also gated by default (`Config.GateAmmo = true`). Set it to `false` to allow free ammo purchase.
+
+Storage: `police_weapon_licenses` table — one row per issuance, soft-delete via `revoked` flag (full audit trail with `issued_by` / `revoked_by` / timestamps).
+
+Other resources can query a player's status:
+```lua
+exports.qbx_policeroles:HasWeaponLicense(src, 1)     -- bool
+exports.qbx_policeroles:GetWeaponLicenses(src)       -- { [1] = true, [3] = true }
+```
+or from the client:
+```lua
+local mine = lib.callback.await('qbx_policeroles:getMyLicenses', false) -- { [1] = true, ... }
+```
+
+### Adding/removing gated weapons
+Just edit `Config.WeaponClasses` in `config.lua` — add the ox_inventory item name → desired class. The hook rebuilds its filter on resource start. No SQL changes needed.
 
 ---
 

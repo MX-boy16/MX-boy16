@@ -20,5 +20,11 @@
     "menu_create": "Create Role",
     "menu_delete": "Delete Role",
     "menu_list": "View All Roles",
-    "menu_view_officer": "View Officer Roles"
+    "menu_view_officer": "View Officer Roles",
+    "license_issued": "Class %d license issued.",
+    "license_revoked": "Class %d license revoked.",
+    "license_already_active": "That citizen already holds an active license of that class.",
+    "no_license_for_purchase": "You do not have the required weapon license.",
+    "mdt_not_authorized": "You are not authorized to use the MDT.",
+    "mdt_not_authorized_license": "You are not authorized to issue weapon licenses."
 }
