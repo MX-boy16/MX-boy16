@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self' 'unsafe-inline' 'unsafe-eval' nui://* https://nui-img/*;
+                   img-src 'self' data: https://nui-img/* nui://*;">
+    <title>Mechanic Tablet</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="root" class="hidden">
+        <!-- Tablet physical frame -->
+        <div class="tablet" id="tablet">
+            <!-- bezels -->
+            <div class="cam"></div>
+
+            <!-- screen -->
+            <div class="screen">
+                <!-- status bar -->
+                <div class="statusbar">
+                    <div class="sb-left">
+                        <span class="sb-time" id="sbTime">--:--</span>
+                        <span class="sb-net"></span>
+                        <span class="sb-batt"><b id="sbBatt">87</b>%</span>
+                    </div>
+                    <div class="sb-center">MECH OS 4.2.1 · TUNER EDITION</div>
+                    <div class="sb-right">
+                        <button class="sb-close" id="sbClose" data-testid="tablet-close">✕</button>
+                    </div>
+                </div>
+
+                <!-- Veh card -->
+                <div class="vehcard">
+                    <div class="vehcard-left">
+                        <div class="vc-label">CONNECTED VEHICLE</div>
+                        <div class="vc-name" id="vcName">--</div>
+                        <div class="vc-plate" id="vcPlate">--</div>
+                    </div>
+                    <div class="vehcard-right">
+                        <div class="vc-stat">
+                            <div class="vc-stat-l">BODY</div>
+                            <div class="vc-stat-v" id="vcBody">--</div>
+                        </div>
+                        <div class="vc-stat">
+                            <div class="vc-stat-l">ENGINE</div>
+                            <div class="vc-stat-v" id="vcEngine">--</div>
+                        </div>
+                        <div class="vc-stat">
+                            <div class="vc-stat-l">WHEELS</div>
+                            <div class="vc-stat-v" id="vcWheels">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="looks"   data-testid="tab-looks">LOOKS</button>
+                    <button class="tab" data-tab="engine"         data-testid="tab-engine">ENGINE</button>
+                    <button class="tab" data-tab="stance"         data-testid="tab-stance">STANCE</button>
+                    <button class="tab" data-tab="wheels"         data-testid="tab-wheels">WHEELS</button>
+                </div>
+
+                <!-- Pane: LOOKS -->
+                <section class="pane active" data-pane="looks">
+                    <div class="grid-2">
+                        <div class="cell">
+                            <div class="cell-h">PRIMARY PAINT</div>
+                            <input type="color" id="colPrimary" value="#ff3366">
+                            <button class="btn" data-look="primary" data-color="colPrimary" data-testid="apply-primary">APPLY</button>
+                        </div>
+                        <div class="cell">
+                            <div class="cell-h">SECONDARY PAINT</div>
+                            <input type="color" id="colSecondary" value="#1a1a1a">
+                            <button class="btn" data-look="secondary" data-color="colSecondary" data-testid="apply-secondary">APPLY</button>
+                        </div>
+                        <div class="cell">
+                            <div class="cell-h">NEONS</div>
+                            <input type="color" id="colNeons" value="#00e5ff">
+                            <button class="btn" data-look="neons" data-color="colNeons" data-testid="apply-neons">ENABLE</button>
+                        </div>
+                        <div class="cell">
+                            <div class="cell-h">XENON HEADLIGHTS</div>
+                            <select id="xenonSel">
+                                <option value="0">Default White</option>
+                                <option value="1">Ice Blue</option>
+                                <option value="2">Electric Blue</option>
+                                <option value="3">Mint Green</option>
+                                <option value="4">Lime Green</option>
+                                <option value="5">Yellow</option>
+                                <option value="6">Gold</option>
+                                <option value="7">Orange</option>
+                                <option value="8">Red</option>
+                                <option value="9">Pony Pink</option>
+                                <option value="10">Hot Pink</option>
+                                <option value="11">Purple</option>
+                                <option value="12">UV / Blacklight</option>
+                            </select>
+                            <button class="btn" data-look="xenons" data-sel="xenonSel" data-testid="apply-xenons">APPLY</button>
+                        </div>
+                        <div class="cell wide">
+                            <div class="cell-h">PLATE STYLE</div>
+                            <select id="plateSel">
+                                <option value="0">Blue / White (San Andreas)</option>
+                                <option value="1">Yellow / Black</option>
+                                <option value="2">Yellow / Blue</option>
+                                <option value="3">Blue / White v2</option>
+                                <option value="4">Blue / White v3</option>
+                                <option value="5">Yankton</option>
+                            </select>
+                            <button class="btn" data-look="plate" data-sel="plateSel" data-testid="apply-plate">APPLY</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Pane: ENGINE -->
+                <section class="pane" data-pane="engine">
+                    <div id="engineList" class="perf-list"></div>
+                </section>
+
+                <!-- Pane: STANCE -->
+                <section class="pane" data-pane="stance">
+                    <div class="stance-grid" id="stanceGrid">
+                        <!-- sliders injected -->
+                    </div>
+                    <div class="stance-actions">
+                        <button class="btn ghost" id="stanceReset"  data-testid="stance-reset">RESET</button>
+                        <button class="btn primary" id="stanceSave" data-testid="stance-save">SAVE TUNE</button>
+                    </div>
+                </section>
+
+                <!-- Pane: WHEELS -->
+                <section class="pane" data-pane="wheels">
+                    <div class="cell wide">
+                        <div class="cell-h">WHEEL TYPE</div>
+                        <select id="wheelType">
+                            <option value="0">Sport</option>
+                            <option value="1">Muscle</option>
+                            <option value="2">Lowrider</option>
+                            <option value="3">SUV</option>
+                            <option value="4">Offroad</option>
+                            <option value="5">Tuner</option>
+                            <option value="6">Bike</option>
+                            <option value="7">High End</option>
+                            <option value="8">Benny's Original</option>
+                            <option value="9">Benny's Bespoke</option>
+                            <option value="10">Open Wheel</option>
+                            <option value="11">Street</option>
+                            <option value="12">Track</option>
+                        </select>
+                    </div>
+                    <div class="cell wide">
+                        <div class="cell-h">WHEEL DESIGN INDEX</div>
+                        <input type="number" id="wheelMod" min="0" max="30" value="0">
+                        <button class="btn primary" data-look="wheelType" data-testid="apply-wheels">APPLY WHEELS</button>
+                    </div>
+                </section>
+
+                <!-- footer -->
+                <div class="foot">
+                    <span class="dot"></span>
+                    <span>TUNE SESSION ACTIVE</span>
+                    <span class="spacer"></span>
+                    <span id="sessionJob">--</span>
+                </div>
+            </div>
+
+            <!-- home indicator -->
+            <div class="home-bar"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

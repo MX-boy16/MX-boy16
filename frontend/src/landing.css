@@ -15,6 +15,7 @@
     --text-3: #5e6b78;
     --accent: #ff7a18;
     --cyan: #00e0ff;
+    --mint: #5cffc2;
     --lime: #b6ff39;
     --danger: #ff3860;
 }
@@ -34,6 +35,41 @@ body, .App, #root { background: var(--bg-0); }
     overflow-x: hidden;
     text-align: left;
 }
+
+/* SWITCHER */
+.switcher {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 28px 48px 0;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.sw {
+    background: var(--bg-1);
+    border: 1px solid var(--line);
+    border-left: 3px solid transparent;
+    text-align: left;
+    padding: 18px 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .2s;
+    color: var(--text);
+    font-family: 'Chakra Petch';
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.sw:hover { border-color: var(--cyan); background: var(--bg-2); }
+.sw.on { border-left-color: var(--active, var(--accent)); background: var(--bg-2); }
+.sw-k {
+    font-family: 'JetBrains Mono';
+    font-size: 11px;
+    color: var(--active, var(--accent));
+    letter-spacing: 2px;
+}
+.sw-l { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
+.sw-s { font-family: 'JetBrains Mono'; font-size: 10px; color: var(--text-3); letter-spacing: 1.5px; }
 
 /* ============ HEADER ============ */
 .hdr {

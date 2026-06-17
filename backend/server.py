@@ -16,9 +16,25 @@ from datetime import datetime, timezone
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
-# Resource folder (FiveM resource lives at /app/dusa_mechanic_qbx)
-RESOURCE_DIR = Path('/app/dusa_mechanic_qbx')
-ZIP_PATH = Path('/app/dusa_mechanic_qbx.zip')
+# Resources available for download (extensible)
+RESOURCES = {
+    'dusa_mechanic_qbx': {
+        'label': 'Dusa Mechanic (shops, lifts, society)',
+        'dir': Path('/app/dusa_mechanic_qbx'),
+        'zip': Path('/app/dusa_mechanic_qbx.zip'),
+        'preview_path': '/api/preview/dusa_mechanic_qbx/index.html',
+    },
+    'mechanic_tablet': {
+        'label': 'Mechanic Tablet (in-vehicle, job-gated)',
+        'dir': Path('/app/mechanic_tablet'),
+        'zip': Path('/app/mechanic_tablet.zip'),
+        'preview_path': '/api/preview/mechanic_tablet/index.html',
+    },
+}
+
+# Legacy single-resource constants (kept for backwards compat with old endpoints)
+RESOURCE_DIR = RESOURCES['dusa_mechanic_qbx']['dir']
+ZIP_PATH = RESOURCES['dusa_mechanic_qbx']['zip']
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
@@ -62,7 +78,64 @@ async def get_status_checks():
 
 
 # ============================================================
-# Resource browser endpoints
+# Resource browser endpoints (multi-resource)
+# ============================================================
+def _zip_resource(res_key: str) -> Path:
+    info = RESOURCES[res_key]
+    if not info['zip'].exists() or info['zip'].stat().st_mtime < max(
+        (p.stat().st_mtime for p in info['dir'].rglob('*') if p.is_file()), default=0
+    ):
+        import zipfile
+        with zipfile.ZipFile(info['zip'], 'w', zipfile.ZIP_DEFLATED) as z:
+            for p in info['dir'].rglob('*'):
+                if p.is_file():
+                    z.write(p, Path(res_key) / p.relative_to(info['dir']))
+    return info['zip']
+
+
+@api_router.get("/resources")
+async def list_resources():
+    out = []
+    for key, info in RESOURCES.items():
+        files = list(info['dir'].rglob('*')) if info['dir'].exists() else []
+        files = [p for p in files if p.is_file()]
+        total = sum(p.stat().st_size for p in files)
+        out.append({
+            'key': key,
+            'label': info['label'],
+            'file_count': len(files),
+            'total_size': total,
+            'preview_path': info['preview_path'],
+            'download_path': f'/api/resources/{key}/download',
+        })
+    return out
+
+
+@api_router.get("/resources/{res_key}/manifest")
+async def resource_manifest_v2(res_key: str):
+    if res_key not in RESOURCES:
+        return {"error": "not found"}
+    info = RESOURCES[res_key]
+    files, total = [], 0
+    if info['dir'].exists():
+        for p in sorted(info['dir'].rglob('*')):
+            if p.is_file():
+                size = p.stat().st_size
+                total += size
+                files.append({"path": p.relative_to(info['dir']).as_posix(), "size": size})
+    return {"files": files, "total_size": total, "file_count": len(files)}
+
+
+@api_router.get("/resources/{res_key}/download")
+async def resource_download_v2(res_key: str):
+    if res_key not in RESOURCES:
+        return {"error": "not found"}
+    z = _zip_resource(res_key)
+    return FileResponse(z, media_type='application/zip', filename=f'{res_key}.zip')
+
+
+# ============================================================
+# Legacy single-resource endpoints (backwards compat)
 # ============================================================
 @api_router.get("/resource/manifest")
 async def resource_manifest():
@@ -93,25 +166,25 @@ async def resource_file(path: str):
 
 @api_router.get("/resource/download")
 async def resource_download():
-    """Download the entire resource as a zip."""
-    if not ZIP_PATH.exists():
-        # Re-zip on the fly
-        import zipfile
-        with zipfile.ZipFile(ZIP_PATH, 'w', zipfile.ZIP_DEFLATED) as z:
-            for p in RESOURCE_DIR.rglob('*'):
-                if p.is_file():
-                    z.write(p, p.relative_to(RESOURCE_DIR.parent))
-    return FileResponse(ZIP_PATH, media_type='application/zip',
-                        filename='dusa_mechanic_qbx.zip')
+    """Download the entire (legacy) resource as a zip."""
+    z = _zip_resource('dusa_mechanic_qbx')
+    return FileResponse(z, media_type='application/zip', filename='dusa_mechanic_qbx.zip')
 
 
 app.include_router(api_router)
 
-# Mount NUI preview as static at /api/preview/* (so the kubernetes ingress
-# routes it to the backend pod)
-if (RESOURCE_DIR / 'html').exists():
-    app.mount("/api/preview", StaticFiles(directory=str(RESOURCE_DIR / 'html'), html=True),
-              name="preview")
+# Mount each resource's NUI preview as static at /api/preview/{key}/*
+for _key, _info in RESOURCES.items():
+    _html_dir = _info['dir'] / 'html'
+    if _html_dir.exists():
+        app.mount(f"/api/preview/{_key}", StaticFiles(directory=str(_html_dir), html=True),
+                  name=f"preview_{_key}")
+
+# Backwards-compat legacy mount (old landing referenced /api/preview/index.html)
+_legacy_html = Path('/app/dusa_mechanic_qbx/html')
+if _legacy_html.exists():
+    app.mount("/api/preview", StaticFiles(directory=str(_legacy_html), html=True),
+              name="preview_legacy")
 
 app.add_middleware(
     CORSMiddleware,
