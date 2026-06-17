@@ -109,4 +109,25 @@ local hasAccess = PlayerHasAccess(source)            -- membership check
 - ox_inventory
 - ox_target
 
+## 🥤 Supplement mixing system
+
+Protein, Pre-Workout and Creatine now come as **bags** (each starts at **100%**, shown as a
+durability bar). You don't drink them directly — you **mix** them into a **gym bottle** with
+**water**:
+
+1. Buy bags + a **Small** or **Big Gym Bottle** at the front-desk **Supplement Shop**
+   (or `/giveitem id gym_bottle_small 1`). Bags spawn at 100%.
+2. Make sure you have **water** (`Config.Mix.waterItem`, default `water`).
+3. **Use the gym bottle** → a **Mix** menu opens listing your bags.
+   - **Small bottle** = **1 water + 10%** from the chosen bag.
+   - **Big bottle**  = **2 water + 20%** from the chosen bag.
+4. The bag's % drops; when it hits 0% the bag is used up.
+5. **Use the now-filled bottle** again to **drink** it → **2-minute training boost**
+   (`Config.Mix.boostMultiplier`× XP from every exercise) + an energy/sprint burst.
+   The bottle empties and is **reusable**.
+
+All amounts, prices, water item, boost length & multiplier are in `Config.Mix` / `Config.Shop`.
+
+> Steroids stay a **direct-use injectable** (not mixed) — huge instant gains, small HP cost.
+
 Enjoy the gains! 🏋️‍♂️

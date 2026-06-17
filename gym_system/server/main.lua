@@ -4,6 +4,13 @@
 local STAT_KEY = 'gymstats'
 local MEMBER_KEY = 'gymmembership'
 
+-- Active training-boost timers (from drinking a mixed shake), keyed by source.
+local BoostUntil = {}
+
+function ActivateGymBoost(src, duration)
+    BoostUntil[src] = os.time() + duration
+end
+
 -----------------------------------------------------------------------
 -- HELPERS
 -----------------------------------------------------------------------
@@ -124,6 +131,10 @@ RegisterNetEvent('gym:server:gainXp', function(statType, amount)
     amount = math.min(tonumber(amount) or 0, 50) -- clamp to stop abuse
     if amount <= 0 then return end
     if not PlayerHasAccess(src) then return end
+    -- shake boost doubles XP gains while active
+    if BoostUntil[src] and os.time() < BoostUntil[src] then
+        amount = math.floor(amount * Config.Mix.boostMultiplier)
+    end
     local leveled = GrantStatXp(src, { [statType] = amount })
     if leveled then
         TriggerClientEvent('ox_lib:notify', src, { title = 'Gym', description = ('Your %s went up!'):format(statType), type = 'success' })
@@ -164,5 +175,28 @@ lib.callback.register('gym:server:buyCard', function(src)
     if not exports.ox_inventory:CanCarryItem(src, Config.Membership.cardItem, 1) then return 'full' end
     if not player.Functions.RemoveMoney(Config.Account, Config.Membership.cardPrice, 'gym-card') then return 'broke' end
     exports.ox_inventory:AddItem(src, Config.Membership.cardItem, 1)
+    return true
+end)
+
+-----------------------------------------------------------------------
+-- FRONT DESK SHOP (bags / bottles / steroids)
+-----------------------------------------------------------------------
+lib.callback.register('gym:server:buyShopItem', function(src, itemName)
+    local player = getPlayer(src)
+    if not player then return false end
+
+    local entry
+    for _, e in ipairs(Config.Shop) do
+        if e.item == itemName then entry = e break end
+    end
+    if not entry then return false end
+
+    if (player.PlayerData.money[Config.Account] or 0) < entry.price then return 'broke' end
+    if not exports.ox_inventory:CanCarryItem(src, entry.item, 1) then return 'full' end
+    if not player.Functions.RemoveMoney(Config.Account, entry.price, 'gym-shop') then return 'broke' end
+
+    -- bags spawn full (100%) using durability metadata for the visible bar
+    local meta = entry.bag and { durability = Config.Mix.startPercent } or nil
+    exports.ox_inventory:AddItem(src, entry.item, 1, meta)
     return true
 end)

@@ -42,6 +42,31 @@ end
 -----------------------------------------------------------------------
 -- MEMBERSHIP MENU
 -----------------------------------------------------------------------
+local function showShopMenu()
+    local options = {}
+    for _, entry in ipairs(Config.Shop) do
+        options[#options + 1] = {
+            title = ('%s — %s'):format(entry.label, fmtMoney(entry.price)),
+            description = entry.bag and 'Comes as a 100% bag — mix with water in a gym bottle' or nil,
+            icon = entry.bag and 'fa-solid fa-bag-shopping' or 'fa-solid fa-bottle-water',
+            onSelect = function()
+                local ok = lib.callback.await('gym:server:buyShopItem', false, entry.item)
+                if ok == true then
+                    lib.notify({ title = 'Gym', description = ('Bought %s'):format(entry.label), type = 'success' })
+                elseif ok == 'broke' then
+                    lib.notify({ title = 'Gym', description = 'You cannot afford this.', type = 'error' })
+                elseif ok == 'full' then
+                    lib.notify({ title = 'Gym', description = 'Your inventory is full.', type = 'error' })
+                else
+                    lib.notify({ title = 'Gym', description = 'Purchase failed.', type = 'error' })
+                end
+            end,
+        }
+    end
+    lib.registerContext({ id = 'gym_shop_menu', title = 'Supplement Shop', menu = 'gym_membership_menu', options = options })
+    lib.showContext('gym_shop_menu')
+end
+
 local function openMembershipMenu()
     local status = lib.callback.await('gym:server:membershipStatus', false)
     local statusText
@@ -69,6 +94,8 @@ local function openMembershipMenu()
           end },
         { title = 'My Gym Stats', description = 'View your progression', icon = 'chart-simple',
           onSelect = showStatsMenu },
+        { title = 'Supplement Shop', description = 'Buy protein/pre-workout/creatine bags, bottles & steroids', icon = 'bottle-water',
+          onSelect = showShopMenu },
     }
 
     if Config.Membership.sellCardAtDesk then

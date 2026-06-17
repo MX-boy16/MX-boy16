@@ -17,6 +17,13 @@ end
 -- Single export handles ALL supplements/steroids (data.name distinguishes them).
 exports('useGymItem', function(data)
     local itemName = data.name
+
+    -- Bags can't be used directly anymore - they must be mixed in a bottle.
+    if Config.Mix.bags[itemName] then
+        lib.notify({ title = 'Gym', description = 'Pour this into a Gym Bottle (with water) to mix a shake.', type = 'inform' })
+        return
+    end
+
     local cfg = Config.Items[itemName]
     if not cfg then return end
     local isInject = cfg.injectAnim == true
@@ -65,4 +72,81 @@ exports('useGymCard', function(data)
         if not verified then return end
         TriggerServerEvent('gym:server:cardUsed')
     end)
+end)
+
+-----------------------------------------------------------------------
+-- GYM BOTTLE: mix (empty) or drink (mixed)
+-----------------------------------------------------------------------
+local function drinkBottle(slot)
+    local ped = cache.ped
+    lib.requestAnimDict('mp_player_intdrink', 3000)
+    TaskPlayAnim(ped, 'mp_player_intdrink', 'loop_bottle', 8.0, -8.0, 4000, 49, 0, false, false, false)
+    local ok = lib.progressBar({
+        duration = 4000,
+        label = 'Drinking shake...',
+        useWhileDead = false,
+        canCancel = true,
+        disable = { move = true, combat = true },
+    })
+    ClearPedTasks(ped)
+    if not ok then return end
+    TriggerServerEvent('gym:server:drinkBottle', slot)
+end
+
+local function openMixMenu(data, slot)
+    local bottle = Config.Mix.bottles[data.name]
+    if not bottle then return end
+
+    local mixables = lib.callback.await('gym:server:getMixables', false)
+    local options = {}
+
+    if not mixables or #mixables == 0 then
+        options[#options + 1] = {
+            title = 'No supplement bags',
+            description = 'Buy a protein, pre-workout or creatine bag at the front desk.',
+            icon = 'fa-solid fa-ban',
+            readOnly = true,
+        }
+    else
+        for _, m in ipairs(mixables) do
+            local enough = m.durability >= bottle.productPct
+            options[#options + 1] = {
+                title = m.label,
+                description = ('%d%% left • needs %d water + %d%% powder'):format(m.durability, bottle.water, bottle.productPct),
+                icon = 'fa-solid fa-blender',
+                disabled = not enough,
+                progress = m.durability,
+                onSelect = function()
+                    TriggerServerEvent('gym:server:mixBottle', { bottleSlot = slot, bagSlot = m.slot })
+                end,
+            }
+        end
+    end
+
+    lib.registerContext({
+        id = 'gym_mix_menu',
+        title = ('Mix — %s (water: %d, powder: %d%%)'):format(bottle.label, bottle.water, bottle.productPct),
+        options = options,
+    })
+    lib.showContext('gym_mix_menu')
+end
+
+exports('useGymBottle', function(data, slot)
+    local theSlot = data.slot or slot
+    local meta = data.metadata or {}
+    if meta.mixed then
+        drinkBottle(theSlot)
+    else
+        openMixMenu(data, theSlot)
+    end
+end)
+
+-- Drink boost feedback (XP x multiplier handled server-side).
+RegisterNetEvent('gym:client:boost', function(duration)
+    ApplySprintBuff(duration)
+    lib.notify({
+        title = 'Gym',
+        description = ('Training boost active for %d min! XP x%s'):format(math.floor(duration / 60), Config.Mix.boostMultiplier),
+        type = 'success',
+    })
 end)

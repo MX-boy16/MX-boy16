@@ -151,3 +151,45 @@ Config.Items = {
 
 -- Eat/inject animation timing (ms)
 Config.ConsumeTime = 5000
+
+-----------------------------------------------------------------------
+-- SUPPLEMENT MIXING SYSTEM
+-- Protein / Pre-Workout / Creatine now come as BAGS (start at 100%).
+-- You mix a bag + water into a GYM BOTTLE, then drink it for a boost.
+-----------------------------------------------------------------------
+Config.Mix = {
+    waterItem = 'water',        -- existing ox_inventory water item name
+    startPercent = 100,          -- a fresh bag starts at 100%
+    boostDuration = 120,         -- drink boost length in seconds (2 min)
+    boostMultiplier = 2.0,       -- training XP multiplier while boosted
+
+    -- Empty gym bottles you can mix into.
+    bottles = {
+        gym_bottle_small = { label = 'Small Gym Bottle', water = 1, productPct = 10 },
+        gym_bottle_big   = { label = 'Big Gym Bottle',   water = 2, productPct = 20 },
+    },
+
+    -- Bags that can be mixed (these are the supplement powders).
+    bags = {
+        protein_choco = true, protein_vanilla = true, protein_strawberry = true,
+        preworkout_choco = true, preworkout_vanilla = true, preworkout_strawberry = true,
+        creatine = true,
+    },
+}
+
+-----------------------------------------------------------------------
+-- FRONT DESK SHOP
+-- Sold at the clerk ped. Bags are added with 100% (durability metadata).
+-----------------------------------------------------------------------
+Config.Shop = {
+    { item = 'protein_choco',         label = 'Protein Bag (Chocolate)',     price = 800,  bag = true },
+    { item = 'protein_vanilla',       label = 'Protein Bag (Vanilla)',       price = 800,  bag = true },
+    { item = 'protein_strawberry',    label = 'Protein Bag (Strawberry)',    price = 800,  bag = true },
+    { item = 'preworkout_choco',      label = 'Pre-Workout Bag (Chocolate)', price = 1000, bag = true },
+    { item = 'preworkout_vanilla',    label = 'Pre-Workout Bag (Vanilla)',   price = 1000, bag = true },
+    { item = 'preworkout_strawberry', label = 'Pre-Workout Bag (Strawberry)',price = 1000, bag = true },
+    { item = 'creatine',              label = 'Creatine Bag',                price = 1200, bag = true },
+    { item = 'gym_bottle_small',      label = 'Small Gym Bottle',            price = 250 },
+    { item = 'gym_bottle_big',        label = 'Big Gym Bottle',              price = 400 },
+    { item = 'steroids',              label = 'Injectable Steroids',         price = 5000 },
+}
