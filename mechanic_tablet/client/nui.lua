@@ -56,6 +56,7 @@ function CloseTabletNUI()
     ClearPedTasks(PlayerPedId())
     Tablet.veh = nil
     Tablet.plate = nil
+    TriggerEvent('mechanic_tablet:sessionEnded')
 end
 
 RegisterNUICallback('close', function(_, cb)

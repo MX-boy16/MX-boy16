@@ -107,6 +107,30 @@ local function useTablet()
         return
     end
 
+    -- Pre-check: warn if the vehicle is occupied by another player (we won't
+    -- be able to take network control of it cleanly while they're inside).
+    if veh ~= 0 and NetSafe and NetSafe.otherPlayerInside(veh) then
+        lib.notify({
+            type = 'error',
+            description = 'Another player is inside this vehicle — they must step out first.',
+            duration = 6000,
+        })
+        return
+    end
+
+    -- Pre-warm network control so the first edit doesn't hitch.
+    if veh ~= 0 and NetSafe then
+        CreateThread(function()
+            if not NetSafe.requestControl(veh, 1500) then
+                lib.notify({
+                    type = 'warning',
+                    description = 'Network sync slow on this vehicle — changes may take a moment.',
+                    duration = 4500,
+                })
+            end
+        end)
+    end
+
     Tablet.veh   = veh ~= 0 and veh or nil
     Tablet.plate = Tablet.veh and vehiclePlate(Tablet.veh) or nil
     Tablet.open  = true

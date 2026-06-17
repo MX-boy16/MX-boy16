@@ -139,6 +139,19 @@ mechanic_tablet/
 
 ---
 
+## Networking / "I tried to tune someone else's car"
+
+The tablet requires **network ownership** of the vehicle before applying any change. This is handled automatically:
+
+1. When you open the tablet on a vehicle, the resource pre-warms network control in the background.
+2. If another player is already sitting inside the car you're targeting, the tablet refuses to open and tells you to ask them to step out.
+3. If we can't acquire control within ~1.5s (e.g., the vehicle is owned by a player far away), you'll see a friendly warning instead of a silent failure / freeze.
+4. Stance sliders re-use the same control session — they don't re-request control on every drag.
+
+If a change still doesn't apply, get in the driver seat of the car first; that always gives you network control.
+
+---
+
 ## License
 
 MIT.

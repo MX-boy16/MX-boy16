@@ -14,6 +14,7 @@ shared_scripts {
 }
 
 client_scripts {
+    'client/netsafe.lua',
     'client/main.lua',
     'client/stance.lua',
     'client/looks.lua',
