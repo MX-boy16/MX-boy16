@@ -100,7 +100,8 @@ local function getMembership(player)
 end
 
 local function hasCard(src)
-    local count = exports.ox_inventory:Search(src, 'count', Config.Membership.cardItem)
+    -- GetItem with returnsCount = true (Search is client-only and fails server-side)
+    local count = exports.ox_inventory:GetItem(src, Config.Membership.cardItem, nil, true)
     return (count or 0) > 0
 end
 

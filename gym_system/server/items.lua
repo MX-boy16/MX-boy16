@@ -48,21 +48,29 @@ local function notify(src, desc, type)
     TriggerClientEvent('ox_lib:notify', src, { title = 'Gym', description = desc, type = type or 'inform' })
 end
 
+-- Read a bag's remaining percentage (defaults to 100 if it has no metadata yet).
+local function bagPercent(slotData)
+    if slotData and slotData.metadata then
+        return slotData.metadata.percent or slotData.metadata.durability or Config.Mix.startPercent
+    end
+    return Config.Mix.startPercent
+end
+
 -- Return the supplement bags the player is carrying (for the mix menu).
+-- Uses GetInventoryItems (Search is a CLIENT-only export and fails server-side).
 lib.callback.register('gym:server:getMixables', function(src)
-    local names = {}
-    for name in pairs(Config.Mix.bags) do names[#names + 1] = name end
-    local slots = exports.ox_inventory:Search(src, 'slots', names) or {}
     local result = {}
-    for _, s in ipairs(slots) do
-        local dur = (s.metadata and s.metadata.durability) or Config.Mix.startPercent
-        local item = exports.ox_inventory:Items(s.name)
-        result[#result + 1] = {
-            slot = s.slot,
-            name = s.name,
-            label = (item and item.label) or s.name,
-            durability = math.floor(dur),
-        }
+    local items = exports.ox_inventory:GetInventoryItems(src) or {}
+    for _, slot in pairs(items) do
+        if slot and Config.Mix.bags[slot.name] then
+            local item = exports.ox_inventory:Items(slot.name)
+            result[#result + 1] = {
+                slot = slot.slot,
+                name = slot.name,
+                label = (item and item.label) or slot.name,
+                durability = math.floor(bagPercent(slot)),
+            }
+        end
     end
     return result
 end)
@@ -74,34 +82,42 @@ RegisterNetEvent('gym:server:mixBottle', function(payload)
 
     local bottle = exports.ox_inventory:GetSlot(src, payload.bottleSlot)
     local bag = exports.ox_inventory:GetSlot(src, payload.bagSlot)
-    if not bottle or not bag then return end
+    if not bottle then return notify(src, 'Bottle not found, try again.', 'error') end
+    if not bag then return notify(src, 'That bag is no longer in your inventory.', 'error') end
 
     local bcfg = Config.Mix.bottles[bottle.name]
     if not bcfg then return end
-    if not Config.Mix.bags[bag.name] then return end
+    if not Config.Mix.bags[bag.name] then
+        return notify(src, 'You need a protein, pre-workout or creatine bag.', 'error')
+    end
     if bottle.metadata and bottle.metadata.mixed then
         return notify(src, 'That bottle is already full. Drink it first.', 'error')
     end
 
-    -- need enough water
-    local water = exports.ox_inventory:Search(src, 'count', Config.Mix.waterItem) or 0
+    -- need enough water (GetItem with returnsCount = true; server-side safe)
+    local water = exports.ox_inventory:GetItem(src, Config.Mix.waterItem, nil, true) or 0
     if water < bcfg.water then
         return notify(src, ('You need %d water for a %s.'):format(bcfg.water, bcfg.label), 'error')
     end
 
-    -- need enough product left in the bag
-    local dur = (bag.metadata and bag.metadata.durability) or Config.Mix.startPercent
-    if dur < bcfg.productPct then
-        return notify(src, 'Not enough supplement left in that bag.', 'error')
+    -- need enough product left in the bag (nil metadata = full 100%)
+    local pct = bagPercent(bag)
+    if pct < bcfg.productPct then
+        return notify(src, ('Bag too low (%d%%). A %s needs %d%%.'):format(math.floor(pct), bcfg.label, bcfg.productPct), 'error')
     end
 
-    -- consume water + bag percentage
+    -- consume water
     exports.ox_inventory:RemoveItem(src, Config.Mix.waterItem, bcfg.water)
-    local newDur = dur - bcfg.productPct
-    if newDur <= 0 then
+
+    -- reduce the bag; remove it when it hits 0%
+    local newPct = pct - bcfg.productPct
+    if newPct <= 0 then
         exports.ox_inventory:RemoveItem(src, bag.name, 1, nil, payload.bagSlot)
     else
-        exports.ox_inventory:SetDurability(src, payload.bagSlot, newDur)
+        local meta = bag.metadata or {}
+        meta.percent = newPct
+        meta.durability = newPct -- keeps the visible bar in sync
+        exports.ox_inventory:SetMetadata(src, payload.bagSlot, meta)
     end
 
     -- fill the bottle
@@ -113,7 +129,7 @@ RegisterNetEvent('gym:server:mixBottle', function(payload)
         label = label,
         description = 'A freshly mixed gym shake. Drink for a 2-minute training boost.',
     })
-    notify(src, ('Mixed a %s! Drink it to get a boost.'):format(label), 'success')
+    notify(src, ('Mixed a %s! Bag now at %d%%.'):format(label, math.max(0, math.floor(newPct))), 'success')
 end)
 
 -- Drink a mixed bottle -> 2-minute training boost, bottle empties (reusable).
