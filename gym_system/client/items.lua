@@ -133,8 +133,9 @@ end
 
 exports('useGymBottle', function(data, slot)
     local theSlot = data.slot or slot
-    local meta = data.metadata or {}
-    if meta.mixed then
+    -- Ask the server for the bottle's CURRENT state (client metadata can be stale).
+    local state = lib.callback.await('gym:server:bottleState', false, theSlot)
+    if state and state.mixed then
         drinkBottle(theSlot)
     else
         openMixMenu(data, theSlot)

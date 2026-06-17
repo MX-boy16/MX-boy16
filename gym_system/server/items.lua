@@ -56,6 +56,13 @@ local function bagPercent(slotData)
     return Config.Mix.startPercent
 end
 
+-- Tell the client whether a bottle slot is currently mixed (authoritative).
+lib.callback.register('gym:server:bottleState', function(src, slot)
+    local b = exports.ox_inventory:GetSlot(src, slot)
+    if not b then return { valid = false } end
+    return { valid = true, name = b.name, mixed = (b.metadata and b.metadata.mixed) or false }
+end)
+
 -- Return the supplement bags the player is carrying (for the mix menu).
 -- Uses GetInventoryItems (Search is a CLIENT-only export and fails server-side).
 lib.callback.register('gym:server:getMixables', function(src)
