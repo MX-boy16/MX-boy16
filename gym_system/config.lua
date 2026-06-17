@@ -71,6 +71,20 @@ Config.Effects = {
 }
 
 -----------------------------------------------------------------------
+-- VISIBLE MUSCLE / BODY GROWTH (gets visibly more jacked as you train)
+-----------------------------------------------------------------------
+Config.Muscle = {
+    enabled = true,
+    maxTone = 100,        -- freemode muscle tone (0-100) when fully jacked
+    -- Muscle LEVEL at which the body looks maximally jacked. Lower = faster
+    -- visible gains. Keep below Config.MaxLevel so training "a lot" shows clearly.
+    fullAtLevel = 50,
+    reapplyMs = 4000,     -- keep re-asserting so clothing/skin menus don't wipe it
+    -- Also push the freemode BODY muscle morph (heritage 'muscle' slider) for extra bulk.
+    applyBodyMorph = true,
+}
+
+-----------------------------------------------------------------------
 -- EQUIPMENT
 -- Add as many stations as your MLO has. type drives which stat grows.
 -- types: 'stamina' | 'strength' | 'punch' | 'muscle'

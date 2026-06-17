@@ -82,12 +82,23 @@ Walk to each gym prop and copy your position into the matching `coords` field.
 
 ## 💪 How muscle growth works (please read)
 
-Visible muscle uses the GTA freemode **muscle tone** stat (`MP0_MUSCLE_TONE`) plus the
-strength stat, re-applied to your ped. This visibly thickens the body **only on freemode
-multiplayer peds** (`mp_m_freemode_01` / `mp_f_freemode_01`), which QBX uses by default for
-created characters. On story-mode peds (Michael/Franklin/etc.) the stat is set but the body
-mesh won't morph — that's a GTA limitation, not a bug. Toggle with
-`Config.Effects.applyMuscleVisual`.
+The more you train your **Muscle** stat, the more jacked your character looks. This uses GTA's
+freemode **muscle-tone** body system (`MP0_MUSCLE_TONE` + strength stats), re-applied and
+re-asserted to your ped continuously so clothing/skin menus don't wipe it.
+
+Tuning is in **`Config.Muscle`**:
+- `fullAtLevel` — the Muscle **level** at which you look maximally jacked (default **50**, i.e.
+  half of max level). **Lower it** for faster/more obvious visible gains.
+- `maxTone` — peak body tone (0–100).
+- `reapplyMs` — how often the body is re-asserted (keeps muscle after changing clothes).
+- `applyBodyMorph` — re-pokes torso/legs so the engine re-evaluates the body mesh.
+
+**Important limitation:** visible body growth only renders on **freemode multiplayer peds**
+(`mp_m_freemode_01` / `mp_f_freemode_01`), which QBX uses by default for created characters.
+On story-mode peds (Michael/Franklin/etc.) the stats are set but the mesh won't morph — that's a
+hard GTA engine limit, not a bug. There is **no native to freely scale a ped's size** in FiveM,
+so "bigger" = the freemode muscle morph (noticeably thicker torso/arms at high levels), not a
+height/scale change. Toggle the whole system with `Config.Muscle.enabled`.
 
 ---
 
