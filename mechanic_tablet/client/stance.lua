@@ -24,15 +24,9 @@ function ApplyStance(veh, st)
     if not veh or veh == 0 or not DoesEntityExist(veh) then return end
     SetVehicleModKit(veh, 0)
 
-    if SetVehicleWheelWidth then
-        SetVehicleWheelWidth(veh, st.wheelWidth or 1.0)
-    end
-    if SetVehicleWheelSize then
-        SetVehicleWheelSize(veh, st.wheelSize or 1.0)
-    end
-    if SetVehicleSuspensionHeight then
-        SetVehicleSuspensionHeight(veh, st.suspHeight or 0.0)
-    end
+    if SetVehicleWheelWidth then SetVehicleWheelWidth(veh, st.wheelWidth or 1.0) end
+    if SetVehicleWheelSize  then SetVehicleWheelSize(veh,  st.wheelSize  or 1.0) end
+    if SetVehicleSuspensionHeight then SetVehicleSuspensionHeight(veh, st.suspHeight or 0.0) end
 
     local wheelCount = GetVehicleNumberOfWheels(veh)
     for i = 0, wheelCount - 1 do
@@ -47,22 +41,25 @@ function ApplyStance(veh, st)
     CurrentStance = st
 end
 
--- ========================================================
--- Acquire network control once, then keep it warm during the session.
--- This avoids requesting control on every slider tick.
--- ========================================================
-local sessionControlled = false
+Mechanic = Mechanic or {}
+Mechanic.applyStanceNative = ApplyStance
 
-local function ensureSessionControl(veh)
-    if sessionControlled and NetworkHasControlOfEntity(veh) then return true end
-    sessionControlled = NetSafe.requestControl(veh, 1500)
-    if not sessionControlled then
-        lib.notify({
-            type = 'error',
-            description = 'Cannot control this vehicle (occupied or owned by another player)'
-        })
+-- ========================================================
+-- Per-session control state. We try to take control once when the
+-- session opens. If we can't (e.g. car is being driven by another
+-- player), we fall back to RELAYING the slider values via the server
+-- to the actual network owner, throttled to avoid spam.
+-- ========================================================
+local sessionMode = 'pending'   -- 'local' | 'relay' | 'pending'
+local lastRelay   = 0
+local RELAY_THROTTLE_MS = 120
+
+local function chooseMode(veh)
+    if NetworkHasControlOfEntity(veh) then return 'local' end
+    if not NetSafe.otherPlayerInside(veh) and NetSafe.requestControl(veh, 1000) then
+        return 'local'
     end
-    return sessionControlled
+    return 'relay'
 end
 
 local function readPayload(payload)
@@ -76,20 +73,35 @@ local function readPayload(payload)
     }
 end
 
+local function dispatch(veh, st, force)
+    if sessionMode == 'pending' then sessionMode = chooseMode(veh) end
+    CurrentStance = st
+    if sessionMode == 'local' then
+        ApplyStance(veh, st)
+    else
+        -- Throttle relays during slider drag, unless forced (save/reset).
+        local now = GetGameTimer()
+        if force or (now - lastRelay) >= RELAY_THROTTLE_MS then
+            lastRelay = now
+            local netId = VehToNet(veh)
+            if netId and netId ~= 0 then
+                TriggerServerEvent('mechanic_tablet:relay', netId, 'stance', st)
+            end
+        end
+    end
+end
+
 RegisterNetEvent('mechanic_tablet:stancePreview', function(payload)
     local veh = Tablet.veh
     if not veh or veh == 0 or not DoesEntityExist(veh) then return end
-    if NetSafe.otherPlayerInside(veh) then return end
-    if not ensureSessionControl(veh) then return end
-    ApplyStance(veh, readPayload(payload))
+    dispatch(veh, readPayload(payload), false)
 end)
 
 RegisterNetEvent('mechanic_tablet:stanceSave', function(payload)
     if not Tablet.plate then return end
     local veh = Tablet.veh
     if not veh or veh == 0 or not DoesEntityExist(veh) then return end
-    if not ensureSessionControl(veh) then return end
-    ApplyStance(veh, readPayload(payload))
+    dispatch(veh, readPayload(payload), true)
     TriggerServerEvent('mechanic_tablet:saveStance', Tablet.plate, CurrentStance)
     lib.notify({ type = 'success', description = 'Stance saved' })
 end)
@@ -97,7 +109,6 @@ end)
 RegisterNetEvent('mechanic_tablet:stanceReset', function()
     local veh = Tablet.veh
     if not veh or veh == 0 or not DoesEntityExist(veh) then return end
-    if not ensureSessionControl(veh) then return end
     local def = {
         wheelWidth   = Config.Stance.wheelWidth.default,
         wheelSize    = Config.Stance.wheelSize.default,
@@ -106,13 +117,13 @@ RegisterNetEvent('mechanic_tablet:stanceReset', function()
         camberFront  = Config.Stance.camberFront.default,
         camberRear   = Config.Stance.camberRear.default,
     }
-    ApplyStance(veh, def)
+    dispatch(veh, def, true)
     if Tablet.plate then
         TriggerServerEvent('mechanic_tablet:saveStance', Tablet.plate, def)
     end
 end)
 
--- Reset the session flag when tablet closes
 AddEventHandler('mechanic_tablet:sessionEnded', function()
-    sessionControlled = false
+    sessionMode = 'pending'
+    lastRelay   = 0
 end)

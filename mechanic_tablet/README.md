@@ -139,16 +139,21 @@ mechanic_tablet/
 
 ---
 
-## Networking / "I tried to tune someone else's car"
+## Networking / "Can I tune NPC cars or another player's car?"
 
-The tablet requires **network ownership** of the vehicle before applying any change. This is handled automatically:
+**Yes.** As long as you have a job in `Config.AllowedJobs`, the tablet works on:
+- ✅ Your own personal vehicles
+- ✅ NPC traffic vehicles
+- ✅ Other players' vehicles — even while they're sitting in them
 
-1. When you open the tablet on a vehicle, the resource pre-warms network control in the background.
-2. If another player is already sitting inside the car you're targeting, the tablet refuses to open and tells you to ask them to step out.
-3. If we can't acquire control within ~1.5s (e.g., the vehicle is owned by a player far away), you'll see a friendly warning instead of a silent failure / freeze.
-4. Stance sliders re-use the same control session — they don't re-request control on every drag.
+### How it works
 
-If a change still doesn't apply, get in the driver seat of the car first; that always gives you network control.
+The mechanic's tablet uses a **two-path apply system**:
+
+1. **Fast path** — if the mechanic's client can grab network ownership of the vehicle (most cases: NPC cars, parked players' cars, unoccupied vehicles), the natives are applied locally and replicate automatically.
+2. **Relay path** — if another player is actively driving the car, the apply command is routed `mechanic → server → vehicle's actual net-owner client`, which then runs the native locally. Stance slider drags are throttled to 120ms in this mode to avoid network spam.
+
+The server validates the mechanic job before forwarding any relay, so non-mechanics cannot abuse it to grief vehicles.
 
 ---
 

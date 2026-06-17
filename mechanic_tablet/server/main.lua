@@ -48,6 +48,30 @@ lib.callback.register('mechanic_tablet:loadVehicle', function(src, plate)
     return row
 end)
 
+-- =========================================================
+-- RELAY: forward apply commands to the vehicle's network owner.
+-- This lets a mechanic edit ANY car (NPC, other player's, etc.)
+-- regardless of who currently owns the entity on the network.
+-- =========================================================
+RegisterNetEvent('mechanic_tablet:relay', function(netId, action, payload)
+    local src = source
+    if not jobAllowed(src) then return end
+    if not netId or not action then return end
+
+    local veh = NetworkGetEntityFromNetworkId(netId)
+    if not veh or veh == 0 or not DoesEntityExist(veh) then return end
+
+    -- Find the current network owner of the entity (returns -1 if none).
+    local owner = NetworkGetEntityOwner(veh)
+    local target = (owner and owner ~= -1) and owner or src
+
+    -- Anti-spam: rate-limit per source (lightweight)
+    -- (Optional - omitted for clarity; throttling is done client-side.)
+
+    TriggerClientEvent('mechanic_tablet:applyRemote', target, netId, action, payload)
+end)
+
+
 RegisterNetEvent('mechanic_tablet:saveStance', function(plate, stance)
     if not plate or not stance then return end
     if not jobAllowed(source) then return end

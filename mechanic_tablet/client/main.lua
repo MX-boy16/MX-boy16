@@ -107,28 +107,11 @@ local function useTablet()
         return
     end
 
-    -- Pre-check: warn if the vehicle is occupied by another player (we won't
-    -- be able to take network control of it cleanly while they're inside).
-    if veh ~= 0 and NetSafe and NetSafe.otherPlayerInside(veh) then
-        lib.notify({
-            type = 'error',
-            description = 'Another player is inside this vehicle — they must step out first.',
-            duration = 6000,
-        })
-        return
-    end
-
-    -- Pre-warm network control so the first edit doesn't hitch.
-    if veh ~= 0 and NetSafe then
-        CreateThread(function()
-            if not NetSafe.requestControl(veh, 1500) then
-                lib.notify({
-                    type = 'warning',
-                    description = 'Network sync slow on this vehicle — changes may take a moment.',
-                    duration = 4500,
-                })
-            end
-        end)
+    -- Pre-warm network control so the first edit doesn't hitch. If we can't
+    -- get it (NPC drives away, another player driving, etc.) we'll fall back
+    -- to the server relay automatically — no need to block the user here.
+    if veh ~= 0 and NetSafe and not NetSafe.otherPlayerInside(veh) then
+        CreateThread(function() NetSafe.requestControl(veh, 1200) end)
     end
 
     Tablet.veh   = veh ~= 0 and veh or nil
@@ -201,4 +184,32 @@ end
 AddEventHandler('onResourceStop', function(res)
     if res ~= GetCurrentResourceName() then return end
     removeTablet()
+end)
+
+-- ========================================================
+-- Remote-apply receiver
+--
+-- The mechanic's client may not own the vehicle entity (e.g. it's an NPC
+-- car or another player's car). In that case the server relays the apply
+-- to whichever client is currently the network owner. THAT client (this
+-- handler) runs the native locally so the change propagates to everyone.
+-- ========================================================
+RegisterNetEvent('mechanic_tablet:applyRemote', function(netId, action, payload)
+    if not netId or not action then return end
+    local veh = NetToVeh(netId)
+    if not veh or veh == 0 or not DoesEntityExist(veh) then return end
+
+    if action == 'looks' then
+        if Mechanic and Mechanic.applyLooksNative then
+            Mechanic.applyLooksNative(veh, payload)
+        end
+    elseif action == 'perf' then
+        if Mechanic and Mechanic.applyPerfNative then
+            Mechanic.applyPerfNative(veh, payload.kind, payload.level)
+        end
+    elseif action == 'stance' then
+        if Mechanic and Mechanic.applyStanceNative then
+            Mechanic.applyStanceNative(veh, payload)
+        end
+    end
 end)
