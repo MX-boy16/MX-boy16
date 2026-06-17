@@ -72,8 +72,6 @@ function ApplyMuscle(ped)
         SetPedComponentVariation(ped, 4, GetPedDrawableVariation(ped, 4), GetPedTextureVariation(ped, 4), GetPedPaletteVariation(ped, 4)) -- legs
         SetPedComponentVariation(ped, 11, GetPedDrawableVariation(ped, 11), GetPedTextureVariation(ped, 11), GetPedPaletteVariation(ped, 11)) -- jacket/top
     end
-    -- ensure the muscle stat is actually committed to the ped
-    UpdatePedVariation(ped, false, true, true, true, false)
 end
 
 --- Server -> client: full sync of stats
